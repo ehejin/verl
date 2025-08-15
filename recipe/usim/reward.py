@@ -136,7 +136,7 @@ EXAMPLE_CFG = {
     "reward_belief": True,  # False if we only reward actions
     "weights": {"belief": 0.3, "response": 0.7}, 
     "belief_metrics": [
-        {"type": "bertscore", "weight": 1.0, "model": None, "device": "cuda:1"}
+        {"type": "bertscore", "weight": 1.0, "model": None, "device": "cpu"}
     ],
     "response_metrics": [
         {"type": "rougeL", "weight": 0.5},
@@ -147,8 +147,12 @@ EXAMPLE_CFG = {
 
 # entra_info should be a dict where the key "reward_cfg" is a dict with the example structure above
 # records individual metric breakdowns for debugging purposes
-def compute_reward(data_source, solution_str, ground_truth, extra_info=None):
-    cfg = (extra_info or {}).get("reward_cfg", EXAMPLE_CFG)
+def compute_reward(data_source, solution_str, ground_truth, extra_info=None, reward_config=None):
+    print('RCCCC:', reward_config)
+    cfg = {**(reward_config or {})}
+
+    print("SOLUTION STR ", solution_str)
+    print("GTTT: ", ground_truth)
 
     pred_belief, pred_resp = parse_text(solution_str)
     ref_belief, ref_resp = parse_text(ground_truth)

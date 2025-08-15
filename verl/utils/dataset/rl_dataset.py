@@ -120,6 +120,7 @@ class RLHFDataset(Dataset):
 
         self._download()
         self._read_files_and_tokenize()
+        self.test_print=0
 
     def _download(self, use_origin_parquet=False):
         from verl.utils.fs import copy_to_local
@@ -157,6 +158,9 @@ class RLHFDataset(Dataset):
                     raw_prompt = self.processor.apply_chat_template(
                         messages, add_generation_prompt=True, tokenize=False, **self.apply_chat_template_kwargs
                     )
+                    if self.test_print==0:
+                        print("Raw prompt", raw_prompt)
+                    self.test_print += 1
                     images = [process_image(image) for image in doc[image_key]] if image_key in doc else None
                     videos = [process_video(video) for video in doc[video_key]] if video_key in doc else None
 

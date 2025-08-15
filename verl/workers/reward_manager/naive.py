@@ -27,7 +27,7 @@ from verl.workers.reward_manager.abstract import AbstractRewardManager
 class NaiveRewardManager(AbstractRewardManager):
     """The reward manager."""
 
-    def __init__(self, tokenizer, num_examine, compute_score=None, reward_fn_key="data_source") -> None:
+    def __init__(self, tokenizer, num_examine, compute_score=None, reward_fn_key="data_source", reward_config=None) -> None:
         """
         Initialize the NaiveRewardManager instance.
 
@@ -42,6 +42,7 @@ class NaiveRewardManager(AbstractRewardManager):
         self.num_examine = num_examine  # the number of batches of decoded responses to print to the console
         self.compute_score = compute_score or default_compute_score
         self.reward_fn_key = reward_fn_key  # Store the key for accessing the data source
+        self.reward_config=reward_config
 
     def __call__(self, data: DataProto, return_dict: bool = False) -> torch.Tensor | dict[str, Any]:
         """We will expand this function gradually based on the available datasets"""
@@ -87,6 +88,7 @@ class NaiveRewardManager(AbstractRewardManager):
                 solution_str=response_str,
                 ground_truth=ground_truth,
                 extra_info=extra_info,
+                reward_config=self.reward_config
             )
 
             if isinstance(score, dict):
