@@ -29,11 +29,16 @@ fi
 # Launch training
 torchrun --standalone --nnodes=1 --nproc_per_node=2 \
     -m verl.trainer.fsdp_sft_trainer \
+    custom_reward_function.path="$VERL_PATH/recipe/usim/reward.py"   \
+    custom_reward_function.name="compute_reward" \
     data.train_files="$DATA_DIR/train.parquet" \
     data.val_files="$DATA_DIR/val.parquet" \
-    data.multiturn.enable=true \
+    data.chat_template_path="$VERL_PATH/recipe/usim/character_template.txt"\
+    data.multiturn.enable=false \
     data.multiturn.messages_key=messages \
-    data.max_length=6000 \
+    data.max_prompt_length=5000 \
+    data.max_response_length=2048 \
+    data.filter_overlong_prompts=True \
     data.train_batch_size=2 \
     data.micro_batch_size_per_gpu=1 \
     model.partial_pretrain="Qwen/Qwen2.5-14B" \

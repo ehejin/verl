@@ -167,7 +167,7 @@ class RLHFDataset(Dataset):
                 def doc2len(doc) -> int:
                     return len(
                         tokenizer.apply_chat_template(
-                            doc[prompt_key], add_generation_prompt=True, **self.apply_chat_template_kwargs
+                            doc[prompt_key], add_generation_prompt=True, speak_as=doc['extra_info']['name'], **self.apply_chat_template_kwargs
                         )
                     )
 
@@ -225,7 +225,7 @@ class RLHFDataset(Dataset):
             from verl.utils.dataset.vision_utils import process_image, process_video
 
             raw_prompt = self.processor.apply_chat_template(
-                messages, add_generation_prompt=True, tokenize=False, **self.apply_chat_template_kwargs
+                messages, add_generation_prompt=True, tokenize=False, speak_as=row_dict['extra_info']['name'], **self.apply_chat_template_kwargs
             )
             multi_modal_data = {}
 
@@ -266,7 +266,7 @@ class RLHFDataset(Dataset):
 
         else:
             raw_prompt = self.tokenizer.apply_chat_template(
-                messages, add_generation_prompt=True, tokenize=False, **self.apply_chat_template_kwargs
+                messages, add_generation_prompt=True, tokenize=False, speak_as=row_dict['extra_info']['name'], **self.apply_chat_template_kwargs
             )
             model_inputs = self.tokenizer(raw_prompt, return_tensors="pt", add_special_tokens=False)
             input_ids = model_inputs.pop("input_ids")

@@ -301,6 +301,7 @@ def create_rl_dataset(data_paths, data_config, tokenizer, processor, is_train=Tr
     # Check if a custom dataset class is specified in the data configuration
     # and if the path to the custom class is provided
     if "custom_cls" in data_config and data_config.custom_cls.get("path", None) is not None:
+        raise ExceptionType("NO CUSTOM TEMPLATE EDIT FOR THIS DATASET CLASS")
         # Dynamically load the custom dataset class
         dataset_cls = load_extern_type(data_config.custom_cls.path, data_config.custom_cls.name)
         # Verify that the custom dataset class inherits from torch.utils.data.Dataset
@@ -312,12 +313,14 @@ def create_rl_dataset(data_paths, data_config, tokenizer, processor, is_train=Tr
     elif "datagen" in data_config and data_config.datagen.get("path", None) is not None and is_train:
         # If a data generation strategy is specified, use the DynamicGenDataset class
         from verl.utils.dataset.dynamicgen_dataset import DynamicGenDataset
+        raise ExceptionType("NO CUSTOM TEMPLATE EDIT FOR THIS DATASET CLASS")
 
         dataset_cls = DynamicGenDataset
         print("Using DynamicGenDataset for data generation.")
 
     else:
         # Use the default RLHFDataset class if no custom class is specified
+        print("INSTANTIATING RLHFDATASET")
         dataset_cls = RLHFDataset
     print(f"Using dataset class: {dataset_cls.__name__}")
 

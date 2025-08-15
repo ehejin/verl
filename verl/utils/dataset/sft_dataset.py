@@ -112,6 +112,9 @@ class SFTDataset(Dataset):
             self.responses = self.responses.squeeze()
         self.responses = self.responses.tolist()
 
+        extra = self.dataframe.get("extra_info", None)
+        self.names = extra.map(lambda x: to_dict(x).get("name") if x is not None else None).tolist()
+
     def __len__(self):
         return len(self.prompts)
 
@@ -126,7 +129,7 @@ class SFTDataset(Dataset):
 
         # string
         prompt_chat_str = tokenizer.apply_chat_template(
-            prompt_chat, add_generation_prompt=True, tokenize=False, **self.apply_chat_template_kwargs
+            prompt_chat, add_generation_prompt=True, tokenize=False, speak_as=self.names[item],**self.apply_chat_template_kwargs
         )
         response_chat_str = response + tokenizer.eos_token
 
