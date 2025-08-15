@@ -148,11 +148,7 @@ EXAMPLE_CFG = {
 # entra_info should be a dict where the key "reward_cfg" is a dict with the example structure above
 # records individual metric breakdowns for debugging purposes
 def compute_reward(data_source, solution_str, ground_truth, extra_info=None, reward_config=None):
-    print('RCCCC:', reward_config)
     cfg = {**(reward_config or {})}
-
-    print("SOLUTION STR ", solution_str)
-    print("GTTT: ", ground_truth)
 
     pred_belief, pred_resp = parse_text(solution_str)
     ref_belief, ref_resp = parse_text(ground_truth)

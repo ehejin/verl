@@ -141,6 +141,11 @@ class RLHFDataset(Dataset):
 
         self.dataframe = self.maybe_filter_out_long_prompts(self.dataframe)
 
+        '''for i in range(min(3, len(self.dataframe))):
+            ex = self.dataframe[i]
+            sys_msg = ex[self.prompt_key][0]["content"]
+            print(f"[PARQUET SYS MSG #{i}]\n{sys_msg}\n")'''
+
     def maybe_filter_out_long_prompts(self, dataframe: datasets.Dataset = None):
         # filter out too long prompts
         if self.filter_overlong_prompts:
@@ -156,10 +161,9 @@ class RLHFDataset(Dataset):
                 def doc2len(doc) -> int:
                     messages = self._build_messages(doc)
                     raw_prompt = self.processor.apply_chat_template(
-                        messages, add_generation_prompt=True, tokenize=False, **self.apply_chat_template_kwargs
+                        messages, add_generation_prompt=True, tokenize=False, speak_as=doc['extra_info']['name'], **self.apply_chat_template_kwargs
                     )
-                    if self.test_print==0:
-                        print("Raw prompt", raw_prompt)
+                    #print("RAW PROMPT ", raw_prompt)
                     self.test_print += 1
                     images = [process_image(image) for image in doc[image_key]] if image_key in doc else None
                     videos = [process_video(video) for video in doc[video_key]] if video_key in doc else None

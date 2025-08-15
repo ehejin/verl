@@ -7,7 +7,7 @@ DATA_PATH="/lfs/ampere4/0/echoi1/digitial-human-lm/data/reddit"
 VERL_PATH="/lfs/ampere4/0/echoi1/digitial-human-lm/verl"
 OUTPUT_DIR="/dfs/scratch0/echoi1/verl/grpo"
 
-export CUDA_VISIBLE_DEVICES=3,5,6,7
+export CUDA_VISIBLE_DEVICES=4,5,6,7
 export NEW_HF_CACHE=/dfs/scratch0/echoi1/hf-cache
 
 export HF_HOME="$NEW_HF_CACHE"
@@ -25,16 +25,18 @@ python3 -m verl.trainer.main_ppo \
     '+custom_reward_function.reward_config.response_metrics=[{type: rougeL, weight: 0.5}, {type: bleu, weight: 0.25}, {type: edit_sim, weight: 0.25}]' \
     data.train_files=$DATA_PATH/train.parquet \
     data.val_files=$DATA_PATH/test.parquet \
-    data.train_batch_size=64 \
+    +data.cache_dir='/lfs/ampere4/0/echoi1/verl_cache' \
+    data.return_full_prompt=True \
+    data.train_batch_size=32 \
     data.max_prompt_length=2500 \
     data.max_response_length=2048 \
     data.filter_overlong_prompts=True \
     data.truncation='error' \
-    data.chat_template_path="$VERL_PATH/recipe/usim/character_template.txt"\
+    data.chat_template_path="$VERL_PATH/recipe/usim/qwen_multi_role_template.jinja"\
     actor_rollout_ref.model.path="Qwen/Qwen2.5-7B-Instruct" \
     actor_rollout_ref.actor.optim.lr=3e-6 \
     actor_rollout_ref.model.use_remove_padding=True \
-    actor_rollout_ref.actor.ppo_mini_batch_size=64 \
+    actor_rollout_ref.actor.ppo_mini_batch_size=32 \
     actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=2 \
     actor_rollout_ref.model.lora_rank=16 \
     actor_rollout_ref.model.lora_alpha=16 \
