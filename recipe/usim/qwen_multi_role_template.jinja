@@ -55,7 +55,7 @@
     {%- endif %}
 {%- endfor %}
 {%- if add_generation_prompt %}
-    {{- '<|im_start|>assistant\n' }}
+    {{- '<|im_start|>user\n' }}
     {%- if speak_as is defined and speak_as %}<name>{{ speak_as }}</name>
     {%- endif -%}
     {{- '\n' }}
