@@ -26,14 +26,13 @@ python3 -m verl.trainer.main_ppo \
     data.train_files=$DATA_PATH/train.parquet \
     data.val_files=$DATA_PATH/test.parquet \
     +data.cache_dir='/lfs/ampere4/0/echoi1/verl_cache' \
-    data.return_full_prompt=True \
     data.train_batch_size=32 \
     data.max_prompt_length=2500 \
     data.max_response_length=2048 \
     data.filter_overlong_prompts=True \
     data.truncation='error' \
     data.chat_template_path="$VERL_PATH/recipe/usim/qwen_multi_role_template.jinja"\
-    actor_rollout_ref.model.path="Qwen/Qwen2.5-7B-Instruct" \
+    actor_rollout_ref.model.path="Qwen/Qwen2.5-14B-Instruct" \
     actor_rollout_ref.actor.optim.lr=3e-6 \
     actor_rollout_ref.model.use_remove_padding=True \
     actor_rollout_ref.actor.ppo_mini_batch_size=32 \
@@ -66,6 +65,6 @@ python3 -m verl.trainer.main_ppo \
     trainer.n_gpus_per_node=4 \
     trainer.nnodes=1 \
     trainer.default_local_dir="$OUTPUT_DIR" \
-    trainer.save_freq=20 \
+    trainer.save_freq=50 \
     trainer.test_freq=5 \
     trainer.total_epochs=15 $@

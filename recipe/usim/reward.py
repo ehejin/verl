@@ -127,7 +127,6 @@ def run_metrics(ref, output, metrics_cfg):
             print(f"WARNING: Metric {m} not supported for rewards.")
         value = max(0.0, min(1.0, float(value)))
         weighted.append((value, w))
-        print("metric_type: ", metric_type,  weighted)
     return aggregate(weighted), breakdown
 
 
@@ -152,6 +151,9 @@ def compute_reward(data_source, solution_str, ground_truth, extra_info=None, rew
 
     pred_belief, pred_resp = parse_text(solution_str)
     ref_belief, ref_resp = parse_text(ground_truth)
+    if ref_belief == "" or ref_resp == "":
+        print("ERROR GOLD BELEIF OR RESPONSE EMPTY ")
+        print("ground_truth")
 
     reward_belief = bool(cfg.get("reward_belief", True)) 
     belief_score, belief_breakdown = (0.0, {})

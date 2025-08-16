@@ -112,8 +112,7 @@ class SFTDataset(Dataset):
             self.responses = self.responses.squeeze()
         self.responses = self.responses.tolist()
 
-        extra = self.dataframe.get("extra_info", None)
-        self.names = extra.map(lambda x: to_dict(x).get("name") if x is not None else None).tolist()
+        self.names = self.dataframe["name"].tolist()
 
     def __len__(self):
         return len(self.prompts)

@@ -2,10 +2,10 @@ set -e
 set -x  # Print commands
 
 OUTPUT_DIR="/dfs/scratch0/echoi1/verl/sft"
-DATA_PATH="/lfs/ampere4/0/echoi1/digitial-human-lm/data/reddit"
-VERL_PATH="/lfs/ampere4/0/echoi1/digitial-human-lm/verl"
+DATA_DIR="/lfs/ampere4/0/echoi1/digitial-human-lm/data/reddit_sft"
+VERL_DIR="/lfs/ampere4/0/echoi1/digitial-human-lm/verl"
 
-export CUDA_VISIBLE_DEVICES=5,6,7
+export CUDA_VISIBLE_DEVICES=7,0
 export NEW_HF_CACHE=/dfs/scratch0/echoi1/hf-cache
 
 export HF_HOME="$NEW_HF_CACHE"
@@ -20,28 +20,19 @@ echo "Model: $MODEL_PATH"
 echo "Data: $DATA_DIR"
 echo "Output: $OUTPUT_DIR"
 
-# Prepare dataset if missing
-if [ ! -f "$DATA_DIR/train.parquet" ]; then
-    echo "Preparing dataset..."
-    python scripts/prepare_data.py
-fi
-
 # Launch training
 torchrun --standalone --nnodes=1 --nproc_per_node=2 \
     -m verl.trainer.fsdp_sft_trainer \
-    custom_reward_function.path="$VERL_PATH/recipe/usim/reward.py"   \
-    custom_reward_function.name="compute_reward" \
     data.train_files="$DATA_DIR/train.parquet" \
     data.val_files="$DATA_DIR/val.parquet" \
-    data.chat_template_path="$VERL_PATH/recipe/usim/character_template.txt"\
+    +data.chat_template_path="$VERL_DIR/recipe/usim/character_template.txt"\
     data.multiturn.enable=false \
-    data.multiturn.messages_key=messages \
-    data.max_prompt_length=5000 \
-    data.max_response_length=2048 \
-    data.filter_overlong_prompts=True \
+    data.max_length=6000 \
     data.train_batch_size=2 \
+    data.prompt_key=prompt \
+    data.response_key=response \
     data.micro_batch_size_per_gpu=1 \
-    model.partial_pretrain="Qwen/Qwen2.5-14B" \
+    model.partial_pretrain="Qwen/Qwen2.5-7B" \
     model.fsdp_config.model_dtype=fp32 \
     model.enable_gradient_checkpointing=false \
     optim.lr=2e-5 \
