@@ -226,7 +226,7 @@ class TaskRunner:
         from verl.utils import hf_processor, hf_tokenizer
 
         trust_remote_code = config.data.get("trust_remote_code", False)
-        tokenizer = hf_tokenizer(local_path, trust_remote_code=trust_remote_code)     #### EDIT THE hf_tokenizer to add custom chat_template
+        tokenizer = hf_tokenizer(local_path, trust_remote_code=trust_remote_code, chat_template_path=config.data.chat_template_path)     #### EDIT THE hf_tokenizer to add custom chat_template
         # Used for multimodal LLM, could be None
         processor = hf_processor(local_path, trust_remote_code=trust_remote_code, use_fast=True)
 

@@ -7,7 +7,7 @@ DATA_PATH="/lfs/ampere1/0/echoi1/digitial-human-lm/data/reddit"
 VERL_PATH="/lfs/ampere1/0/echoi1/digitial-human-lm/verl"
 OUTPUT_DIR="/dfs/scratch0/echoi1/verl/grpo"
 
-export CUDA_VISIBLE_DEVICES=4,5,6,7
+export CUDA_VISIBLE_DEVICES=6,7
 export NEW_HF_CACHE=/dfs/scratch0/echoi1/hf-cache
 
 export HF_HOME="$NEW_HF_CACHE"
@@ -32,7 +32,7 @@ python3 -m verl.trainer.main_ppo \
     data.filter_overlong_prompts=True \
     data.truncation='error' \
     data.chat_template_path="$VERL_PATH/recipe/usim/qwen_multi_role_template.jinja"\
-    actor_rollout_ref.model.path="Qwen/Qwen2.5-14B-Instruct" \
+    actor_rollout_ref.model.path="Qwen/Qwen2.5-7B-Instruct" \
     actor_rollout_ref.actor.optim.lr=2e-5 \
     actor_rollout_ref.model.use_remove_padding=True \
     actor_rollout_ref.actor.ppo_mini_batch_size=16 \
@@ -70,7 +70,7 @@ python3 -m verl.trainer.main_ppo \
     trainer.logger='["console","wandb"]' \
     trainer.project_name='verl_grpo_example_geo3k' \
     trainer.experiment_name='qwen2_5_vl_7b_function_rm' \
-    trainer.n_gpus_per_node=4 \
+    trainer.n_gpus_per_node=2 \
     trainer.nnodes=1 \
     trainer.default_local_dir="$OUTPUT_DIR" \
     trainer.save_freq=50 \
