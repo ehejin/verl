@@ -320,7 +320,6 @@ def create_rl_dataset(data_paths, data_config, tokenizer, processor, is_train=Tr
 
     else:
         # Use the default RLHFDataset class if no custom class is specified
-        print("INSTANTIATING RLHFDATASET")
         dataset_cls = RLHFDataset
     print(f"Using dataset class: {dataset_cls.__name__}")
 

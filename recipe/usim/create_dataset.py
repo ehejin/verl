@@ -27,9 +27,40 @@ def fix_tags(s):
     s = re.sub(r"<\\\s*response>", "</response>", s)
     return s
 
+BELIEF_OPEN  = re.compile(r"<\s*belief\s*>", re.I)
+BELIEF_CLOSE = re.compile(r"<\s*/\s*belief\s*>", re.I)
+RESP_OPEN    = re.compile(r"<\s*response\s*>", re.I)
+RESP_CLOSE   = re.compile(r"<\s*/\s*response\s*>", re.I)
+
+def add_missing_closing_tags(s: str) -> str:
+    if not isinstance(s, str):
+        return s
+    text = s
+
+    bo = BELIEF_OPEN.search(text)
+    if bo:
+        bc = BELIEF_CLOSE.search(text, bo.end())
+        ro = RESP_OPEN.search(text, bo.end())
+        # missing </belief> and response appears after <belief>
+        if bc is None and ro:
+            insert_at = ro.start()
+            text = text[:insert_at] + "</belief>" + text[insert_at:]
+        # (optional) if no <response> at all and no </belief>, close at end
+        elif bc is None and not ro:
+            text = text + "</belief>"
+
+    ro = RESP_OPEN.search(text)
+    if ro:
+        rc = RESP_CLOSE.search(text, ro.end())
+        if rc is None:
+            text = text + "</response>"
+
+    return text
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--local_dir', default='/lfs/ampere4/0/echoi1/digitial-human-lm/data/reddit')
+    parser.add_argument('--local_dir', default='/lfs/ampere1/0/echoi1/digitial-human-lm/data/reddit')
     parser.add_argument('--hf_repo', default='snap-stanford/synthetic_subreddit_advice')
     parser.add_argument('--hdfs_dir', default=None)
     parser.add_argument('--data_source', default='user-sim/generation')
@@ -73,6 +104,7 @@ if __name__ == '__main__':
             if args.response_only:
                 response = extract_response_block(response)  # if response is true, only take response
             response = fix_tags(response)
+            response = add_missing_closing_tags(response)
 
             user_prompt = "You are responding to this Reddit post: " + post
             values = {

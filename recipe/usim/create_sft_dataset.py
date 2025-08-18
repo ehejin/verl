@@ -2,7 +2,7 @@ import os
 from datasets import load_dataset
 
 HF_REPO = "snap-stanford/synthetic_subreddit_advice" 
-OUT_DIR = "/lfs/ampere4/0/echoi1/digitial-human-lm/data/reddit_sft" 
+OUT_DIR = "/lfs/ampere1/0/echoi1/digitial-human-lm/data/reddit_sft" 
 
 raw = load_dataset(HF_REPO)
 train_val = raw["train"].train_test_split(test_size=0.10, seed=42, shuffle=True)

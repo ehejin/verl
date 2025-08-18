@@ -128,7 +128,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 timeout=datetime.timedelta(seconds=self.config.get("nccl_timeout", 600)),
                 init_method=os.environ.get("DIST_INIT_METHOD", None),
             )
-
+        self.config.model.trust_remote_code = True
         # build device mesh for FSDP
         world_size = torch.distributed.get_world_size()
         # TODO(sgm): support FSDP hybrid shard for larger model
@@ -276,6 +276,8 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 self.processor.chat_template = self.config.model.custom_chat_template
             else:
                 self.tokenizer.chat_template = self.config.model.custom_chat_template
+        else:
+            print("WARNING no CUSTOM CHAT TEMPLATE\n \n \n")
 
         torch_dtype = fsdp_config.get("model_dtype", None)
         if torch_dtype is None:
@@ -1060,8 +1062,8 @@ class CriticWorker(Worker, DistProfilerExtension):
         # using random initialized model from any architecture. May not be the same as Actor.
 
         tokenizer_path = copy_to_local(config.model.tokenizer_path, use_shm=use_shm)
-        self.tokenizer = hf_tokenizer(tokenizer_path, trust_remote_code=config.model.get("trust_remote_code", False))
-        self.processor = hf_processor(tokenizer_path, trust_remote_code=config.model.get("trust_remote_code", False))
+        self.tokenizer = hf_tokenizer(tokenizer_path, trust_remote_code=True)
+        self.processor = hf_processor(tokenizer_path, trust_remote_code=True)
 
         if self.config.model.get("custom_chat_template", None) is not None:
             if self.processor is not None:
@@ -1642,8 +1644,9 @@ class RewardModelWorker(Worker, DistProfilerExtension):
 
             chat.append({"role": "assistant", "content": response})
 
+            name = data.non_tensor_batch["name"][i]
             prompt_with_chat_template = target_tokenizer.apply_chat_template(
-                chat, add_generation_prompt=False, tokenize=False
+                chat, add_generation_prompt=False, speak_as=name, tokenize=False
             )
             if self.rank == 0 and i == 0:
                 # for debugging purpose

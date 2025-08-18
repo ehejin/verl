@@ -29,7 +29,7 @@ When working with Megatron:
 import asyncio
 import getpass
 import logging
-import os
+import os, json, tempfile
 import pickle
 import socket
 from contextlib import contextmanager
@@ -100,7 +100,7 @@ class vLLMRollout(BaseRollout):
 
         if kwargs.get("train_tp") is not None:
             # deployed with megatron
-            import os
+            #import os
 
             os.environ["CUDA_TIMER_STREAM_KAFKA_ENABLE"] = "0"
             os.environ["MEGATRON_IMPORT_TIMERS"] = "0"
@@ -174,9 +174,31 @@ class vLLMRollout(BaseRollout):
                 )
             else:
                 logger.warning(f"cudagraph_capture_sizes must be a list, but got {cudagraph_capture_sizes}")
+        
+        base = os.path.expanduser('~/digitial-human-lm/verl_tok')
+        os.makedirs(base, exist_ok=True)  
+        tok_dir = tempfile.mkdtemp(prefix="tok_", dir=base)
+        tokenizer.save_pretrained(tok_dir)
 
+        cfg_path = os.path.join(tok_dir, "tokenizer_config.json")
+        with open(cfg_path, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+
+        chat_template = getattr(tokenizer, "chat_template", None)
+        if chat_template:
+            cfg["chat_template"] = chat_template
+
+        cfg["eos_token_id"] = tokenizer.eos_token_id
+        cfg["pad_token_id"] = tokenizer.pad_token_id
+        cfg["bos_token_id"] = tokenizer.bos_token_id
+
+        with open(cfg_path, "w", encoding="utf-8") as f:
+            json.dump(cfg, f, ensure_ascii=False, indent=2)
+
+        tok_arg = tok_dir
         self.inference_engine = LLM(
             model=model_path,
+            tokenizer=tok_arg,
             enable_sleep_mode=config.free_cache_engine,
             tensor_parallel_size=tensor_parallel_size,
             distributed_executor_backend="external_launcher",
@@ -192,7 +214,7 @@ class vLLMRollout(BaseRollout):
             max_num_batched_tokens=max_num_batched_tokens,
             enable_chunked_prefill=config.enable_chunked_prefill,
             enable_prefix_caching=True,
-            trust_remote_code=trust_remote_code,
+            trust_remote_code=True,
             seed=config.get("seed", 0),
             **compilation_config,
             **lora_kwargs,

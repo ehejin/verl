@@ -151,9 +151,17 @@ def compute_reward(data_source, solution_str, ground_truth, extra_info=None, rew
 
     pred_belief, pred_resp = parse_text(solution_str)
     ref_belief, ref_resp = parse_text(ground_truth)
-    if ref_belief == "" or ref_resp == "":
-        print("ERROR GOLD BELEIF OR RESPONSE EMPTY ")
-        print("ground_truth")
+    if pred_belief=="" or pred_resp=="":
+        print("ERROR SOLUTION STR EMPTY")
+        print(solution_str)
+        print("----------end----------- \n")
+        print("----------end----------- \n")
+    if ref_belief == "":
+        print("ERROR GOLD BELIEF EMPTY")
+        print("++++++++++++++++++++++== starts: \n ", ground_truth)
+        print("----------end----------- \n")
+    if ref_resp == "":
+        print("ERROR GOLD REPSONSE MEPTY")
 
     reward_belief = bool(cfg.get("reward_belief", True)) 
     belief_score, belief_breakdown = (0.0, {})

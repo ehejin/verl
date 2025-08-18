@@ -143,7 +143,7 @@ class FSDPVLLMShardingManager(BaseShardingManager):
                         )
                     lora_params = layered_summon_lora_params(self.module)
                 else:
-                    with FSDP.summon_full_params(self.module, writeback=False):
+                    with FSDP.summon_full_params(self.module, writeback=False, offload_to_cpu=True):
                         if self.base_sync_done:
                             lora_params = get_peft_model_state_dict(peft_model)
                             lora_params = {
