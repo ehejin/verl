@@ -79,7 +79,7 @@ def _pre_process_inputs(pad_token_id, prompt_token_ids: torch.Tensor) -> list[in
 
 
 class vLLMRollout(BaseRollout):
-    def __init__(self, model_path: str, config: RolloutConfig, tokenizer, model_hf_config, **kwargs):
+    def __init__(self, model_path: str, config: RolloutConfig, tokenizer, model_hf_config, tok_dir, **kwargs):
         """A vLLM rollout. It requires the module is supported by the vllm.
 
         Args:
@@ -175,10 +175,10 @@ class vLLMRollout(BaseRollout):
             else:
                 logger.warning(f"cudagraph_capture_sizes must be a list, but got {cudagraph_capture_sizes}")
         
-        base = os.path.expanduser('/lfs/ampere4/0/echoi1/digitial-human-lm/verl_tok')
+        '''base = os.path.expanduser('/lfs/ampere4/0/echoi1/digitial-human-lm/verl_tok')
         os.makedirs(base, exist_ok=True)  
         tok_dir = tempfile.mkdtemp(prefix="tok_", dir=base)
-        tokenizer.save_pretrained(tok_dir)
+        tokenizer.save_pretrained(tok_dir)'''
 
         self.inference_engine = LLM(
             model=model_path,
@@ -487,9 +487,7 @@ class vLLMAsyncRollout:
         # inference engine is initialized now, update sharding manager
         self.sharding_manager.inference_engine = self.inference_engine
         self.sharding_manager.model_runner = self.inference_engine.worker.model_runner
-        vocab_size = model.get_input_embeddings().num_embeddings
-        _monkey_patch_compute_logits(self.inference_engine.worker.model_runner.model, vocab_size)
-        #_monkey_patch_compute_logits(self.inference_engine.worker.model_runner.model, len(self.tokenizer))
+        _monkey_patch_compute_logits(self.inference_engine.worker.model_runner.model, len(self.tokenizer))
 
     async def _execute_method(self, method: str | bytes, *args, **kwargs):
         if method == "init_worker":

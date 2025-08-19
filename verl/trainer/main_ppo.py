@@ -226,8 +226,18 @@ class TaskRunner:
         from verl.utils import hf_processor, hf_tokenizer
 
         trust_remote_code = config.data.get("trust_remote_code", False)
-        tokenizer = hf_tokenizer(local_path, trust_remote_code=trust_remote_code, chat_template_path=config.data.chat_template_path)     #### EDIT THE hf_tokenizer to add custom chat_template
+        tokenizer = hf_tokenizer(local_path, trust_remote_code=trust_remote_code, chat_template_path=config.data.chat_template_path, load_chat_template=True)     #### EDIT THE hf_tokenizer to add custom chat_template
         # Used for multimodal LLM, could be None
+        tok_dir = "/lfs/ampere4/0/echoi1/tok_dir"
+        tokenizer.save_pretrained(tok_dir)
+
+        from omegaconf import open_dict
+        with open_dict(config):
+            config.actor_rollout_ref.model.tokenizer_dir = tok_dir
+            config.critic.model.tokenizer_path = tok_dir
+            if OmegaConf.select(config, "actor_rollout_ref.ref"):
+                config.actor_rollout_ref.ref.tokenizer_path = tok_dir
+
         processor = hf_processor(local_path, trust_remote_code=trust_remote_code, use_fast=True)
 
         actor_rollout_cls, ray_worker_group_cls = self.add_actor_rollout_worker(config)

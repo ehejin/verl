@@ -1103,12 +1103,6 @@ class RayPPOTrainer:
 
                 batch: DataProto = DataProto.from_single_dict(batch_dict)
 
-                '''if "full_prompts" in batch.non_tensor_batch:
-                    fp = batch.non_tensor_batch["full_prompts"]
-                    print("FULL PROMPT:", fp[0].item() if hasattr(fp[0], "item") else fp[0])
-                else:
-                    print("NONE TENSOR BATHC??", batch.non_tensor_batch)'''
-
                 # add uid to batch
                 batch.non_tensor_batch["uid"] = np.array(
                     [str(uuid.uuid4()) for _ in range(len(batch.batch))], dtype=object

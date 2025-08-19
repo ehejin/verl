@@ -134,6 +134,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
         # TODO(sgm): support FSDP hybrid shard for larger model
         self.device_mesh = create_device_mesh(world_size=world_size, fsdp_size=self.config.actor.fsdp_config.fsdp_size)
 
+        self.tok_dir = config.model.tokenizer_dir
         # build device mesh for Ulysses Sequence Parallel
         self.ulysses_device_mesh = None
         self.ulysses_sequence_parallel_size = self.config.actor.get("ulysses_sequence_parallel_size", 1)
@@ -268,7 +269,9 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
 
         # note that we have to create model in fp32. Otherwise, the optimizer is in bf16, which is incorrect
         # TODO(zhangchi.usc1992): 1. support create from random initialized model. 2. Support init with FSDP directly
-        self.tokenizer = hf_tokenizer(local_path, trust_remote_code=trust_remote_code)
+        #self.tokenizer = hf_tokenizer(local_path, trust_remote_code=trust_remote_code)
+        self.tokenizer = hf_tokenizer(self.tok_dir, trust_remote_code=trust_remote_code)
+
         self.processor = hf_processor(local_path, trust_remote_code=trust_remote_code)
 
         if self.config.model.get("custom_chat_template", None) is not None:
@@ -547,6 +550,7 @@ class ActorRolloutRefWorker(Worker, DistProfilerExtension):
                 model_hf_config=self.actor_model_config,
                 device_mesh=rollout_device_mesh,
                 trust_remote_code=trust_remote_code,
+                tok_dir=self.tok_dir,
                 **lora_kwargs,
             )
 

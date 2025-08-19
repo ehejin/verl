@@ -73,6 +73,16 @@ class NaiveRewardManager(AbstractRewardManager):
             valid_response_length = data_item.batch["attention_mask"][prompt_length:].sum()
             valid_response_ids = response_ids[:valid_response_length]
 
+            tok_len = len(self.tokenizer)
+
+            # After you compute valid_response_ids
+            mx = int(valid_response_ids.max().item()) if valid_response_ids.numel() else -1
+            mn = int(valid_response_ids.min().item()) if valid_response_ids.numel() else  0
+            if mx >= tok_len or mn < 0:
+                print(f"[TOKEN RANGE MISMATCH] min={mn} max={mx} vs tokenizer_len={tok_len}")
+                # Optional: dump first few offending ids
+                print("ids_head:", valid_response_ids[:32].tolist())
+
             # decode
             prompt_str = self.tokenizer.decode(valid_prompt_ids, skip_special_tokens=True)
             response_str = self.tokenizer.decode(valid_response_ids, skip_special_tokens=True)
@@ -82,7 +92,7 @@ class NaiveRewardManager(AbstractRewardManager):
             extra_info = data_item.non_tensor_batch.get("extra_info", {})
             num_turns = data_item.non_tensor_batch.get("__num_turns__", None)
             extra_info["num_turns"] = num_turns
-
+            
             score = self.compute_score(
                 data_source=data_source,
                 solution_str=response_str,
