@@ -175,30 +175,14 @@ class vLLMRollout(BaseRollout):
             else:
                 logger.warning(f"cudagraph_capture_sizes must be a list, but got {cudagraph_capture_sizes}")
         
-        base = os.path.expanduser('~/digitial-human-lm/verl_tok')
+        base = os.path.expanduser('/lfs/ampere4/0/echoi1/digitial-human-lm/verl_tok')
         os.makedirs(base, exist_ok=True)  
         tok_dir = tempfile.mkdtemp(prefix="tok_", dir=base)
         tokenizer.save_pretrained(tok_dir)
 
-        cfg_path = os.path.join(tok_dir, "tokenizer_config.json")
-        with open(cfg_path, "r", encoding="utf-8") as f:
-            cfg = json.load(f)
-
-        chat_template = getattr(tokenizer, "chat_template", None)
-        if chat_template:
-            cfg["chat_template"] = chat_template
-
-        cfg["eos_token_id"] = tokenizer.eos_token_id
-        cfg["pad_token_id"] = tokenizer.pad_token_id
-        cfg["bos_token_id"] = tokenizer.bos_token_id
-
-        with open(cfg_path, "w", encoding="utf-8") as f:
-            json.dump(cfg, f, ensure_ascii=False, indent=2)
-
-        tok_arg = tok_dir
         self.inference_engine = LLM(
             model=model_path,
-            tokenizer=tok_arg,
+            tokenizer=tok_dir,
             enable_sleep_mode=config.free_cache_engine,
             tensor_parallel_size=tensor_parallel_size,
             distributed_executor_backend="external_launcher",
@@ -503,8 +487,9 @@ class vLLMAsyncRollout:
         # inference engine is initialized now, update sharding manager
         self.sharding_manager.inference_engine = self.inference_engine
         self.sharding_manager.model_runner = self.inference_engine.worker.model_runner
-
-        _monkey_patch_compute_logits(self.inference_engine.worker.model_runner.model, len(self.tokenizer))
+        vocab_size = model.get_input_embeddings().num_embeddings
+        _monkey_patch_compute_logits(self.inference_engine.worker.model_runner.model, vocab_size)
+        #_monkey_patch_compute_logits(self.inference_engine.worker.model_runner.model, len(self.tokenizer))
 
     async def _execute_method(self, method: str | bytes, *args, **kwargs):
         if method == "init_worker":
