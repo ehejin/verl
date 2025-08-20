@@ -255,12 +255,21 @@ class TaskRunner:
         self.add_ref_policy_worker(config, actor_rollout_cls)
 
         # Load the reward manager for training and validation.
-        reward_fn = load_reward_manager(
-            config, tokenizer, num_examine=0, reward_config=config.custom_reward_function.reward_config, **config.reward_model.get("reward_kwargs", {})
-        )
-        val_reward_fn = load_reward_manager(
-            config, tokenizer, num_examine=1, reward_config=config.custom_reward_function.reward_config,**config.reward_model.get("reward_kwargs", {})
-        )
+        
+        if config.custom_reward_function is not None and config.custom_reward_function.reward_config is not None:
+            reward_fn = load_reward_manager(
+                config, tokenizer, num_examine=0, reward_config=config.custom_reward_function.reward_config, **config.reward_model.get("reward_kwargs", {})
+            )
+            val_reward_fn = load_reward_manager(
+                config, tokenizer, num_examine=1, reward_config=config.custom_reward_function.reward_config,**config.reward_model.get("reward_kwargs", {})
+            )
+        else:
+            reward_fn = load_reward_manager(
+                config, tokenizer, num_examine=0, **config.reward_model.get("reward_kwargs", {})
+            )
+            val_reward_fn = load_reward_manager(
+                config, tokenizer, num_examine=1,**config.reward_model.get("reward_kwargs", {})
+            )
 
         resource_pool_manager = self.init_resource_pool_mgr(config)
 

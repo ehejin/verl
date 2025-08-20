@@ -91,7 +91,7 @@ def get_custom_reward_fn(config: DictConfig) -> Optional[RawRewardFn]:
 
 
 def load_reward_manager(
-    config: DictConfig, tokenizer: Any, num_examine: int, reward_config, **reward_kwargs: Any
+    config: DictConfig, tokenizer: Any, num_examine: int, reward_config=None, **reward_kwargs: Any
 ) -> AbstractRewardManager:
     """
     Load and initialize a reward manager based on the configuration.

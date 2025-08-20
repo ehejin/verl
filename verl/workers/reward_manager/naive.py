@@ -44,8 +44,58 @@ class NaiveRewardManager(AbstractRewardManager):
         self.reward_fn_key = reward_fn_key  # Store the key for accessing the data source
         self.reward_config=reward_config
 
+    def tokenizer_fingerprint(self):
+        """
+        Return a small dict describing the worker's tokenizer (and, if present,
+        the rollout engine tokenizer). Safe to send over Ray.
+        """
+        import os, hashlib
+
+        def _one(tok):
+            if tok is None:
+                return None
+            added = getattr(tok, "get_added_vocab", lambda: {})()
+            init_kwargs = getattr(tok, "init_kwargs", {})
+            tok_file = init_kwargs.get("tokenizer_file", None)
+            md5 = None
+            if tok_file and os.path.exists(tok_file):
+                try:
+                    with open(tok_file, "rb") as f:
+                        md5 = hashlib.md5(f.read()).hexdigest()
+                except Exception:
+                    md5 = None
+            return {
+                "name_or_path": getattr(tok, "name_or_path", None),
+                "vocab_size": getattr(tok, "vocab_size", None),
+                "added_vocab_len": len(added),
+                "total_size": (getattr(tok, "vocab_size", 0) + len(added)),
+                "pad_id": getattr(tok, "pad_token_id", None),
+                "eos_id": getattr(tok, "eos_token_id", None),
+                "bos_id": getattr(tok, "bos_token_id", None),
+                "unk_id": getattr(tok, "unk_token_id", None),
+                "tokenizer_json_md5": md5,
+            }
+
+        # Primary tokenizer held by the worker (what compute_log_prob/update_actor use)
+        primary = _one(getattr(self, "tokenizer", None))
+
+        # If the rollout engine (e.g., vLLM) owns its own tokenizer, include it too
+        engine_tok = None
+        for attr in ["rollout_engine", "vllm_engine", "engine", "inference_engine"]:
+            eng = getattr(self, attr, None)
+            tok = getattr(eng, "tokenizer", None) if eng is not None else None
+            if tok is not None:
+                engine_tok = _one(tok)
+                break
+
+        return {"worker_primary": primary, "worker_engine": engine_tok}
+
+
     def __call__(self, data: DataProto, return_dict: bool = False) -> torch.Tensor | dict[str, Any]:
         """We will expand this function gradually based on the available datasets"""
+
+        print("\n\n\n\n\n\n")
+        print("[REWARD MANAGER TOKENIZER CHECKKK]", self.tokenizer_fingerprint())
 
         # If there is rm score, we directly return rm score. Otherwise, we compute via rm_score_fn
         if "rm_scores" in data.batch.keys():
@@ -93,13 +143,21 @@ class NaiveRewardManager(AbstractRewardManager):
             num_turns = data_item.non_tensor_batch.get("__num_turns__", None)
             extra_info["num_turns"] = num_turns
             
-            score = self.compute_score(
-                data_source=data_source,
-                solution_str=response_str,
-                ground_truth=ground_truth,
-                extra_info=extra_info,
-                reward_config=self.reward_config
-            )
+            if self.reward_config is not None:
+                score = self.compute_score(
+                    data_source=data_source,
+                    solution_str=response_str,
+                    ground_truth=ground_truth,
+                    extra_info=extra_info,
+                    reward_config=self.reward_config
+                )
+            else:
+                score = self.compute_score(
+                    data_source=data_source,
+                    solution_str=response_str,
+                    ground_truth=ground_truth,
+                    extra_info=extra_info
+                )
 
             if isinstance(score, dict):
                 reward = score["score"]
